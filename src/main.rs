@@ -611,6 +611,7 @@ impl Hanabi {
                 self.games[&game_id].show_discards(user, msgs);
             }
             Some("hands") => {
+                self.games[&game_id].show_stack(user, msgs);
                 self.games[&game_id].show_hands(user, false, msgs);
             }
             Some("deck") => {

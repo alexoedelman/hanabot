@@ -7,12 +7,13 @@ pub(crate) use self::components::{Clue, Color, Number};
 pub(crate) use self::components::{ClueError, DiscardError, PlayError};
 
 /// We want to ensure that we always print colors in the same order.
-const COLOR_ORDER: [Color; 5] = [
+const COLOR_ORDER: [Color; 6] = [
     Color::Red,
     Color::Green,
     Color::White,
     Color::Blue,
     Color::Yellow,
+    Color::Rainbow,
 ];
 
 /// Pretty-print a duration.
@@ -187,6 +188,7 @@ impl Game {
     pub(crate) fn play(&mut self, card: usize) -> Result<(), PlayError> {
         let hands = self.hands.len();
         let hand = self.turn;
+        let cidx = card;
         if let Some(card) = self.hands.get_mut(hand).unwrap().remove(card) {
             self.hands.get_mut(hand).unwrap().draw(&mut self.deck);
 
@@ -229,9 +231,10 @@ impl Game {
             if !success {
                 self.lives -= 1;
                 let did = format!(
-                    "<@{}> incorrectly played a {} after {}",
+                    "<@{}> incorrectly played a {} from their {} slot after {}",
                     self.hands[self.turn].player,
                     card,
+                    cidx,
                     dur_mod(&mut self.last_move_at),
                 );
                 self.last_move = Move::new(self.turn, did.clone(), format!("{}{}", did, drew));
@@ -243,9 +246,10 @@ impl Game {
                 }
             } else {
                 let did = format!(
-                    "<@{}> played a {} after {}",
+                    "<@{}> played a {} from their {} slot after {}",
                     self.hands[self.turn].player,
                     card,
+                    cidx,
                     dur_mod(&mut self.last_move_at),
                 );
                 self.last_move = Move::new(self.turn, did.clone(), format!("{}{}", did, drew));
@@ -310,7 +314,23 @@ impl Game {
             Err(DiscardError::NoSuchCard)
         }
     }
-
+    
+    /// Show the played pile and general info
+    pub(crate) fn show_stack(&self, user: &str, cli: &mut super::MessageProxy) {
+        let stacks: Vec<_> = COLOR_ORDER
+            .iter()
+            .map(|&color| {
+                if let Some(top) = self.played.get(&color) {
+                    format!("{} {}", color, top)
+                } else {
+                    format!("{} :zero:", color)
+                }
+            })
+            .collect();
+            
+        cli.send(user, &format!("Played:\n{}", stacks.join("  |  ")));
+    }
+    
     /// Show `user` every other player's hand + what they know.
     pub(crate) fn show_hands(&self, user: &str, skip_self: bool, cli: &mut super::MessageProxy) {
         let me = self
@@ -330,23 +350,29 @@ impl Game {
             } else {
                 cli.send(user, &format!("<@{}>", self.hands[hand].player));
             }
-            let (cards, known): (Vec<_>, Vec<_>) = self.hands[hand]
+            let (cards, known): (Vec<_>, Vec<_>,) = self.hands[hand]
                 .cards
                 .iter()
                 .map(|card| (format!("{}", card), card.known()))
                 .unzip();
+            let unknown: Vec<_> = self.hands[hand].cards.iter()
+                .map(|card| (card.unknown())).collect();    
 
             if hand == me {
                 if !skip_self {
-                    cli.send(user, &format!("{} known", &known.join("  |  ")));
+                    cli.send(user, &format!("{} known\n{} negative",
+                        &known.join("  |  "),
+                        &unknown.join("  |  ")
+                    ));
                 }
             } else {
                 cli.send(
                     user,
                     &format!(
-                        "{} in hand\n{} known",
+                        "{} in hand\n{} known\n{} negative",
                         &cards.join("  |  "),
-                        &known.join("  |  ")
+                        &known.join("  |  "),
+                        &unknown.join("  |  "),
                     ),
                 );
             }
@@ -571,19 +597,8 @@ impl Game {
             );
         }
 
-        let stacks: Vec<_> = COLOR_ORDER
-            .iter()
-            .map(|&color| {
-                if let Some(top) = self.played.get(&color) {
-                    format!("{} {}", color, top)
-                } else {
-                    format!("{} :zero:", color)
-                }
-            })
-            .collect();
-
         if self.turn == hand {
-            cli.send(user, &format!("Played:\n{}", stacks.join("  |  ")));
+            self.show_stack(user, cli);
 
             // it is our turn.
             // show what we know about our hand, and the hands of the following players
@@ -596,6 +611,14 @@ impl Game {
                 .map(|(i, card)| format!("{}: {}", i + 1, card.known()))
                 .collect();
             cli.send(user, &known.join("  |  "));
+            cli.send(user, "You also know that it is *not*:");
+            let unknown: Vec<_> = self.hands[hand]
+                .cards
+                .iter()
+                .enumerate()
+                .map(|(i, card)| format!("{}: {}", i + 1, card.unknown()))
+                .collect();
+            cli.send(user, &unknown.join("  |  "));
 
             cli.send(user, "");
             self.show_hands(user, true, cli);

@@ -30,6 +30,14 @@ pub(crate) enum Color {
     White,
     Blue,
     Yellow,
+    Rainbow,
+}
+
+impl Color {
+    pub fn clEq(&self, other: Color) -> bool {
+        if *self == Color::Rainbow || other == Color::Rainbow { return true }
+        return *self == other
+    }
 }
 
 use std::fmt;
@@ -41,6 +49,7 @@ impl fmt::Display for Color {
             Color::White => write!(f, ":cloud:"),
             Color::Blue => write!(f, ":droplet:"),
             Color::Yellow => write!(f, ":sunny:"),
+            Color::Rainbow => write!(f, ":rainbow:"),
         }
     }
 }
@@ -131,20 +140,95 @@ impl fmt::Display for Card {
 impl Card {
     pub fn known(&self) -> String {
         let know_color = self.clues.iter().any(|&(_, clue)| match clue {
-            Clue::Color(ref c) => c == &self.color,
+            Clue::Color(ref c) => c.clEq(self.color),
             _ => false,
         });
         let know_number = self.clues.iter().any(|&(_, clue)| match clue {
             Clue::Number(ref n) => n == &self.number,
             _ => false,
         });
+        
+        /*let neg_info = self.clues.iter().any(|&(_, clue)| match clue {
+            Clue::Number(ref n) => n != &self.number,
+            Clue::Color(ref c) => c != &self.color,
+        });*/
 
-        match (know_color, know_number) {
-            (false, false) => format!(":rainbow: :keycap_star:"),
-            (false, true) => format!(":rainbow: {}", self.number),
-            (true, false) => format!("{} :keycap_star:", self.color),
+        let mut ret = match (know_color, know_number) {
+            (false, false) => format!(":keycap_star: :hash:"),
+            (false, true) => format!(":keycap_star: {}", self.number),
+            (true, false) => format!("{} :hash:", self.color),
             (true, true) => format!("{} {}", self.color, self.number),
+        };
+        
+        let mut ret = String::new();
+        
+        for (_, clue) in self.clues.iter() {
+            ret = match clue {
+                Clue::Color(ref c) => 
+                    if c.clEq(self.color) {
+                        format!("{} {}", ret, c)
+                    } else {ret},
+                _ => ret    
+            };
         }
+        
+        if know_number {
+            ret = format!("{} {}", ret, self.number)
+        }
+        
+        /*if neg_info {
+            ret = format!("{}:exclamation:", ret);
+        
+            for (_, clue) in self.clues.iter() {
+                ret = match clue {
+                    Clue::Color(ref c) => if c != &self.color && !know_color {format!("{}{}", ret, c)} else {ret},
+                    Clue::Number(ref n) => if n != &self.number && !know_number {format!("{}{}", ret, n)} else {ret},
+                };
+            }
+        }*/
+        
+        if &ret == "" {
+            ret = format!("   :jonsnow:   ")
+        }
+        
+        return ret
+    }
+    
+    pub fn unknown(&self) -> String {
+        let know_color = self.clues.iter().any(|&(_, clue)| match clue {
+            Clue::Color(ref c) => c.clEq(self.color),
+            _ => false,
+        });
+        let know_number = self.clues.iter().any(|&(_, clue)| match clue {
+            Clue::Number(ref n) => n == &self.number,
+            _ => false,
+        });
+        
+        /*let neg_info = self.clues.iter().any(|&(_, clue)| match clue {
+            Clue::Number(ref n) => n != &self.number,
+            Clue::Color(ref c) => c != &self.color,
+        });*/
+        
+        let mut ret = String::new();
+        
+        for (_, clue) in self.clues.iter() {
+            ret = match clue {
+                Clue::Color(ref c) => 
+                    if c != &self.color && !know_color {
+                        format!("{} {}", ret, c)
+                    } else {ret},
+                Clue::Number(ref n) => 
+                    if n != &self.number && !know_number {
+                        format!("{} {}", ret, n)
+                    } else {ret},
+            };
+        }
+        
+        if &ret == "" {
+            ret = format!("   :jonsnow:   ")
+        }
+        
+        return ret
     }
 }
 
@@ -222,14 +306,14 @@ impl Hand {
             .cards
             .iter()
             .filter(|card| match clue {
-                Clue::Color(ref c) => c == &card.color,
+                Clue::Color(ref c) => c.clEq(card.color),
                 Clue::Number(ref n) => n == &card.number,
             })
             .count();
 
-        if matches == 0 {
-            return Err(ClueError::NoMatchingCards);
-        }
+        //if matches == 0 {
+        //    return Err(ClueError::NoMatchingCards);
+        //}
 
         for card in &mut self.cards {
             card.clues.push((player, clue));
