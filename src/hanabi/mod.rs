@@ -231,10 +231,10 @@ impl Game {
             if !success {
                 self.lives -= 1;
                 let did = format!(
-                    "<@{}> incorrectly played a {} from their {} slot after {}",
+                    "<@{}> incorrectly played a {} from zer {} slot after {}",
                     self.hands[self.turn].player,
                     card,
-                    cidx,
+                    cidx+1,
                     dur_mod(&mut self.last_move_at),
                 );
                 self.last_move = Move::new(self.turn, did.clone(), format!("{}{}", did, drew));
@@ -246,10 +246,10 @@ impl Game {
                 }
             } else {
                 let did = format!(
-                    "<@{}> played a {} from their {} slot after {}",
+                    "<@{}> played a {} from zer {} slot after {}",
                     self.hands[self.turn].player,
                     card,
-                    cidx,
+                    cidx+1,
                     dur_mod(&mut self.last_move_at),
                 );
                 self.last_move = Move::new(self.turn, did.clone(), format!("{}{}", did, drew));
@@ -272,6 +272,7 @@ impl Game {
 
     /// Have the current player discard the `card`'th card from the left (0-indexed).
     pub(crate) fn discard(&mut self, card: usize) -> Result<(), DiscardError> {
+        let cidx = card;
         if self.clues == 8 {
             return Err(DiscardError::MaxClues);
         }
@@ -291,9 +292,10 @@ impl Game {
             };
 
             let did = format!(
-                "<@{}> discarded a {} after {}",
+                "<@{}> discarded a {} from zer {} slot after {}",
                 self.hands[self.turn].player,
                 card,
+                cidx+1,
                 dur_mod(&mut self.last_move_at),
             );
             self.last_move = Move::new(self.turn, did.clone(), format!("{}{}", did, drew));
