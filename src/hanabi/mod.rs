@@ -231,7 +231,7 @@ impl Game {
             if !success {
                 self.lives -= 1;
                 let did = format!(
-                    "<@{}> incorrectly played a {} from zer {} slot after {}",
+                    "<@{}> incorrectly played a {} from the {} slot after {}",
                     self.hands[self.turn].player,
                     card,
                     cidx+1,
@@ -246,7 +246,7 @@ impl Game {
                 }
             } else {
                 let did = format!(
-                    "<@{}> played a {} from zer {} slot after {}",
+                    "<@{}> played a {} from the {} slot after {}",
                     self.hands[self.turn].player,
                     card,
                     cidx+1,
@@ -292,7 +292,7 @@ impl Game {
             };
 
             let did = format!(
-                "<@{}> discarded a {} from zer {} slot after {}",
+                "<@{}> discarded a {} from the {} slot after {}",
                 self.hands[self.turn].player,
                 card,
                 cidx+1,
