@@ -233,7 +233,7 @@ impl Card {
 }
 
 #[derive(Serialize, Deserialize)]
-pub(super) struct Deck(usize, Vec<Card>);
+pub struct Deck(usize, Vec<Card>);
 
 impl Deck {
     pub(super) fn is_empty(&self) -> bool {
@@ -244,7 +244,7 @@ impl Deck {
         self.1.len()
     }
 
-    pub(super) fn of(&self) -> usize {
+    pub fn of(&self) -> usize {
         self.0
     }
 

@@ -585,8 +585,8 @@ impl Hanabi {
                     msgs.send(
                         player,
                         &format!(
-                            "The game was ended prematurely by <@{}> with a score of {}/25",
-                            user, score
+                            "The game was ended prematurely by <@{}> with a score of {}/{}",
+                            user, score, self.games[&game_id].deck.of()
                         ),
                     );
                 }
@@ -811,13 +811,17 @@ impl Hanabi {
         let desc = self.desc_game(game_id);
         let game = self.games.remove(&game_id).unwrap();
 
-        println!("game #{} ended with score {}/25", game_id, game.score());
+        println!("game #{} ended with score {}/{}",
+                game_id,
+                game.score(),
+                game.deck.of());
         msgs.send(
             &self.channel,
             &format!(
-                "{} ended with a score of {}/25 {}",
+                "{} ended with a score of {}/{} {}",
                 desc,
                 game.score(),
+                game.deck.of(),
                 game.score_smiley()
             ),
         );

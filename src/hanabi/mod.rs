@@ -68,7 +68,7 @@ impl Move {
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct Game {
-    deck: Deck,
+    pub deck: Deck,
     hands: Vec<Hand>,
     played: HashMap<Color, Number>,
     discard: HashMap<Color, Vec<Card>>,
@@ -423,19 +423,19 @@ impl Game {
 
     pub fn score_smiley(&self) -> &'static str {
         let points = self.score();
-        if points >= 25 {
+        if points >= self.deck.of() {
             ":tada:"
-        } else if points >= 24 {
+        } else if points >= self.deck.of() -1 {
             ":tired_face:"
-        } else if points >= 23 {
+        } else if points >= self.deck.of() -2 {
             ":slightly_smiling_face:"
-        } else if points >= 22 {
+        } else if points >= self.deck.of() -3 {
             ":neutral_face:"
-        } else if points >= 20 {
+        } else if points >= self.deck.of() -5 {
             ":confused:"
-        } else if points >= 15 {
+        } else if points >= self.deck.of() -10 {
             ":slightly_frowning_face:"
-        } else if points >= 10 {
+        } else if points >= self.deck.of() -15 {
             ":disappointed:"
         } else {
             ":face_with_rolling_eyes:"
@@ -513,11 +513,12 @@ impl Game {
                     &hand.player,
                     &format!(
                         "Game over after {}.\n\
-                         You got {}/25 points {}\n\
+                         You got {}/{} points {}\n\
                          Your hand at the end was:\n\
                          {}",
                         dur(self.started.elapsed()),
                         points,
+                        self.deck.of(),
                         self.score_smiley(),
                         hand.cards
                             .iter()
@@ -530,13 +531,15 @@ impl Game {
             return true;
         }
 
-        if points == 25 {
+        if points == self.deck.of() {
             // the game has ended in a win \o/
             for hand in &self.hands {
                 cli.send(
                     &hand.player,
                     &format!(
-                        "You won the game with 25/25 points after {} {}",
+                        "You won the game with {}/{} points after {} {}",
+                        self.deck.of(),
+                        self.deck.of(),
                         dur(self.started.elapsed()),
                         self.score_smiley()
                     ),
