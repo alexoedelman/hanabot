@@ -586,7 +586,7 @@ impl Hanabi {
                         player,
                         &format!(
                             "The game was ended prematurely by <@{}> with a score of {}/{}",
-                            user, score, self.games[&game_id].deck.of()
+                            user, score, self.games[&game_id].deck.max_score()
                         ),
                     );
                 }
@@ -814,14 +814,14 @@ impl Hanabi {
         println!("game #{} ended with score {}/{}",
                 game_id,
                 game.score(),
-                game.deck.of());
+                game.deck.max_score());
         msgs.send(
             &self.channel,
             &format!(
                 "{} ended with a score of {}/{} {}",
                 desc,
                 game.score(),
-                game.deck.of(),
+                game.deck.max_score(),
                 game.score_smiley()
             ),
         );

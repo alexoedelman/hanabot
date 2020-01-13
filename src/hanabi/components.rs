@@ -233,23 +233,27 @@ impl Card {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct Deck(usize, Vec<Card>);
+pub struct Deck(usize, usize, Vec<Card>);
 
 impl Deck {
     pub(super) fn is_empty(&self) -> bool {
-        self.1.is_empty()
+        self.2.is_empty()
     }
 
     pub(super) fn len(&self) -> usize {
-        self.1.len()
+        self.2.len()
     }
 
-    pub fn of(&self) -> usize {
+    pub(super) fn of(&self) -> usize {
         self.0
     }
 
     pub(super) fn draw(&mut self) -> Option<Card> {
-        self.1.pop()
+        self.2.pop()
+    }
+    
+    pub fn max_score(&self) -> usize {
+        self.1
     }
 }
 
@@ -279,7 +283,8 @@ impl Default for Deck {
             .collect();
 
         cards.shuffle(&mut thread_rng());
-        Deck(cards.len(), cards)
+        let maxscore = super::COLOR_ORDER.len();
+        Deck(cards.len(), maxscore, cards)
     }
 }
 

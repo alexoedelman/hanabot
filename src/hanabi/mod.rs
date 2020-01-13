@@ -423,19 +423,19 @@ impl Game {
 
     pub fn score_smiley(&self) -> &'static str {
         let points = self.score();
-        if points >= self.deck.of() {
+        if points >= self.deck.max_score() {
             ":tada:"
-        } else if points >= self.deck.of() -1 {
+        } else if points >= self.deck.max_score() -1 {
             ":tired_face:"
-        } else if points >= self.deck.of() -2 {
+        } else if points >= self.deck.max_score() -2 {
             ":slightly_smiling_face:"
-        } else if points >= self.deck.of() -3 {
+        } else if points >= self.deck.max_score() -3 {
             ":neutral_face:"
-        } else if points >= self.deck.of() -5 {
+        } else if points >= self.deck.max_score() -5 {
             ":confused:"
-        } else if points >= self.deck.of() -10 {
+        } else if points >= self.deck.max_score() -10 {
             ":slightly_frowning_face:"
-        } else if points >= self.deck.of() -15 {
+        } else if points >= self.deck.max_score() -15 {
             ":disappointed:"
         } else {
             ":face_with_rolling_eyes:"
@@ -518,7 +518,7 @@ impl Game {
                          {}",
                         dur(self.started.elapsed()),
                         points,
-                        self.deck.of(),
+                        self.deck.max_score(),
                         self.score_smiley(),
                         hand.cards
                             .iter()
@@ -531,15 +531,15 @@ impl Game {
             return true;
         }
 
-        if points == self.deck.of() {
+        if points == self.deck.max_score() {
             // the game has ended in a win \o/
             for hand in &self.hands {
                 cli.send(
                     &hand.player,
                     &format!(
                         "You won the game with {}/{} points after {} {}",
-                        self.deck.of(),
-                        self.deck.of(),
+                        self.deck.max_score(),
+                        self.deck.max_score(),
                         dur(self.started.elapsed()),
                         self.score_smiley()
                     ),
