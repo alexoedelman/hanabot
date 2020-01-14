@@ -283,7 +283,7 @@ impl Default for Deck {
             .collect();
 
         cards.shuffle(&mut thread_rng());
-        let maxscore = super::COLOR_ORDER.len();
+        let maxscore = super::COLOR_ORDER.len()*5;
         Deck(cards.len(), maxscore, cards)
     }
 }
