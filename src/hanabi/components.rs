@@ -153,12 +153,12 @@ impl Card {
             Clue::Color(ref c) => c != &self.color,
         });*/
 
-        let mut ret = match (know_color, know_number) {
+        /*let mut ret = match (know_color, know_number) {
             (false, false) => format!(":keycap_star: :hash:"),
             (false, true) => format!(":keycap_star: {}", self.number),
             (true, false) => format!("{} :hash:", self.color),
             (true, true) => format!("{} {}", self.color, self.number),
-        };
+        };*/
         
         let mut ret = String::new();
         
@@ -214,11 +214,11 @@ impl Card {
         for (_, clue) in self.clues.iter() {
             ret = match clue {
                 Clue::Color(ref c) => 
-                    if c != &self.color && !know_color {
+                    if !c.clEq(self.color) {
                         format!("{} {}", ret, c)
                     } else {ret},
                 Clue::Number(ref n) => 
-                    if n != &self.number && !know_number {
+                    if n != &self.number {
                         format!("{} {}", ret, n)
                     } else {ret},
             };
